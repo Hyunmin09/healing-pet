@@ -1,3 +1,6 @@
+mod bridge;
+mod cursor;
+
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -10,7 +13,16 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        .invoke_handler(tauri::generate_handler![])
+        .setup(|app| {
+            bridge::spawn_cursor_poll(app.handle().clone());
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            bridge::list_monitors,
+            bridge::toggle_click_through,
+            bridge::set_click_through,
+            bridge::set_always_on_top
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
