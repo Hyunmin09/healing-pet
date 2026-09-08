@@ -2,6 +2,7 @@ use serde::Serialize;
 
 /// Monitor geometry extracted from the OS.
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MonitorInfo {
     pub x: i32,
     pub y: i32,

@@ -9,6 +9,7 @@ use crate::cursor::MonitorInfo;
 
 /// Cursor position payload emitted to the frontend.
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CursorPosPayload {
     pub x: f64,
     pub y: f64,
