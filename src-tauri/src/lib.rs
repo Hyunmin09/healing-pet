@@ -1,5 +1,7 @@
 mod bridge;
 mod cursor;
+mod state;
+mod tray;
 
 use tauri::Manager;
 
@@ -15,13 +17,16 @@ pub fn run() {
         }))
         .setup(|app| {
             bridge::spawn_cursor_poll(app.handle().clone());
+            tray::build_tray(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             bridge::list_monitors,
             bridge::toggle_click_through,
             bridge::set_click_through,
-            bridge::set_always_on_top
+            bridge::set_always_on_top,
+            state::load_state,
+            state::save_state
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
