@@ -38,7 +38,10 @@ import { poseFor } from "./render/pose";
 import { drawPet } from "./render/petRenderer";
 import { initContextMenu, type MenuAction } from "./ui/contextMenu";
 import { showSpeechBubble } from "./ui/speechBubble";
-import { classifyPointer, type PointerPoint } from "./logic/drag";
+import {
+  classifyScreenPointer,
+  type ScreenPointerPoint,
+} from "./logic/drag";
 
 /** Logical canvas size (matches the CSS size and the renderer). */
 const PET_WIDTH = 240;
@@ -111,7 +114,7 @@ let quitting = false;
 let storeTimer: number | null = null;
 let unlistenMoved: UnlistenFn | null = null;
 let pointerDown = false;
-let pointerStart: PointerPoint | null = null;
+let pointerStart: ScreenPointerPoint | null = null;
 const inputQueue: Input[] = [];
 
 // --- Input queue -----------------------------------------------------------
@@ -183,13 +186,13 @@ function applyClick(): void {
 function onPointerDown(e: MouseEvent): void {
   if (e.button !== 0) return;
   pointerDown = true;
-  pointerStart = { x: e.clientX, y: e.clientY };
+  pointerStart = { screenX: e.screenX, screenY: e.screenY };
 }
 
 function onPointerMove(e: MouseEvent): void {
   if (!pointerDown || pointerStart === null) return;
-  const cur: PointerPoint = { x: e.clientX, y: e.clientY };
-  if (classifyPointer(pointerStart, cur) === "drag") {
+  const cur: ScreenPointerPoint = { screenX: e.screenX, screenY: e.screenY };
+  if (classifyScreenPointer(pointerStart, cur) === "drag") {
     pointerDown = false;
     pointerStart = null;
     void getWindow()
@@ -200,15 +203,17 @@ function onPointerMove(e: MouseEvent): void {
 
 function onPointerUp(e: MouseEvent): void {
   if (!pointerDown || pointerStart === null) return;
-  const cur: PointerPoint = { x: e.clientX, y: e.clientY };
-  const kind = classifyPointer(pointerStart, cur);
+  const cur: ScreenPointerPoint = { screenX: e.screenX, screenY: e.screenY };
+  const kind = classifyScreenPointer(pointerStart, cur);
   pointerDown = false;
   pointerStart = null;
   if (kind !== "click") return;
 
-  // Only clicks near the character center count as an interaction.
-  const dx = cur.x - BODY_X;
-  const dy = cur.y - BODY_Y;
+  // Only clicks near the character center count as an interaction. The
+  // character and the click point share the window frame, so client
+  // coordinates keep their relative distance even while the window moves.
+  const dx = e.clientX - BODY_X;
+  const dy = e.clientY - BODY_Y;
   if (Math.hypot(dx, dy) > CLICK_RADIUS_PX) return;
   applyClick();
 }
