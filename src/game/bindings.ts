@@ -62,27 +62,27 @@ export function getWindow(): WebviewWindow {
 
 /** List all monitors as logical geometry. */
 export function listMonitors(): Promise<MonitorInfo[]> {
-  return invoke<MonitorInfo[]>("listMonitors");
+  return invoke<MonitorInfo[]>("list_monitors");
 }
 
 /** Load the persisted pet state (falls back to defaults on the Rust side). */
 export function loadState(): Promise<PetState> {
-  return invoke<PetState>("loadState");
+  return invoke<PetState>("load_state");
 }
 
 /** Persist the pet state to disk. */
 export function saveState(state: PetState): Promise<void> {
-  return invoke<void>("saveState", { state });
+  return invoke<void>("save_state", { state });
 }
 
 /** Toggle click-through, returning the new state. */
 export function toggleClickThrough(): Promise<boolean> {
-  return invoke<boolean>("toggleClickThrough");
+  return invoke<boolean>("toggle_click_through");
 }
 
 /** Set always-on-top state. */
 export function setAlwaysOnTop(onTop: boolean): Promise<void> {
-  return invoke<void>("setAlwaysOnTop", { onTop });
+  return invoke<void>("set_always_on_top", { onTop });
 }
 
 /** Subscribe to cursor position updates. */
