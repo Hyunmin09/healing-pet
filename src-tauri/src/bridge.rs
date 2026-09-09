@@ -24,18 +24,24 @@ const POLL_INTERVAL: Duration = Duration::from_millis(100);
 static CLICK_THROUGH: AtomicBool = AtomicBool::new(false);
 
 /// List all available monitors as logical geometry.
+///
+/// Tauri 2 `Monitor::position()/size()` return physical pixels, so each value
+/// is normalized by the monitor's scale factor to produce logical geometry.
 #[tauri::command]
 pub fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
     app.available_monitors()
         .map(|monitors| {
             monitors
                 .into_iter()
-                .map(|mon| MonitorInfo {
-                    x: mon.position().x,
-                    y: mon.position().y,
-                    width: mon.size().width,
-                    height: mon.size().height,
-                    scale_factor: mon.scale_factor(),
+                .map(|mon| {
+                    let sf = mon.scale_factor();
+                    MonitorInfo {
+                        x: (mon.position().x as f64 / sf).round() as i32,
+                        y: (mon.position().y as f64 / sf).round() as i32,
+                        width: (mon.size().width as f64 / sf).round() as u32,
+                        height: (mon.size().height as f64 / sf).round() as u32,
+                        scale_factor: sf,
+                    }
                 })
                 .collect()
         })

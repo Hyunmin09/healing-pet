@@ -172,6 +172,7 @@ export function initContextMenu(opts: ContextMenuOptions): ContextMenuHandle {
 
     if (action === "close") {
       dispatch({ type: "close" });
+      opts.onAction("close");
       return;
     }
 

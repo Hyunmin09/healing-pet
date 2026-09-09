@@ -8,6 +8,7 @@
  */
 
 import { LogicalPosition } from "@tauri-apps/api/dpi";
+import type { UnlistenFn } from "@tauri-apps/api/event";
 import {
   getWindow,
   listMonitors,
@@ -108,6 +109,7 @@ let saveInFlight = false;
 let pendingSave = false;
 let quitting = false;
 let storeTimer: number | null = null;
+let unlistenMoved: UnlistenFn | null = null;
 let pointerDown = false;
 let pointerStart: PointerPoint | null = null;
 const inputQueue: Input[] = [];
@@ -229,8 +231,8 @@ function handleMenuAction(action: MenuAction): void {
     case "sleep":
       applySleep();
       break;
-    case "toggle-click-through":
     case "close":
+      void quitApp();
       break;
   }
 }
@@ -463,6 +465,10 @@ async function quitApp(): Promise<void> {
     window.clearInterval(storeTimer);
     storeTimer = null;
   }
+  if (unlistenMoved !== null) {
+    unlistenMoved();
+    unlistenMoved = null;
+  }
   try {
     await saveState(snapshot());
     console.log("[healing-pet] final save");
@@ -601,6 +607,18 @@ async function boot(): Promise<void> {
   } catch (err) {
     console.warn("[healing-pet] listMonitors failed", err);
     monitors = [];
+  }
+
+  // Keep windowPos in sync with the OS whenever the window moves (e.g. after
+  // startDragging). onMoved reports physical pixels, so normalize to logical
+  // coordinates exactly like the boot-time outerPosition read above.
+  try {
+    const sf = await getWindow().scaleFactor();
+    unlistenMoved = await getWindow().onMoved(({ payload: position }) => {
+      windowPos = { x: position.x / sf, y: position.y / sf };
+    });
+  } catch (err) {
+    console.warn("[healing-pet] onMoved subscription failed", err);
   }
 
   // Keep the pet above other windows (best-effort).

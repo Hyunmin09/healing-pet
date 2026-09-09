@@ -92,10 +92,7 @@ pub fn load_state(app: AppHandle) -> PetState {
 /// Persist the pet state to disk as pretty-printed JSON.
 #[tauri::command]
 pub fn save_state(app: AppHandle, state: PetState) -> Result<(), String> {
-    let data_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?;
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     std::fs::create_dir_all(&data_dir).map_err(|e| e.to_string())?;
     let path = state_file_path(&data_dir);
     let json = serde_json::to_string_pretty(&state).map_err(|e| e.to_string())?;
@@ -149,10 +146,8 @@ mod tests {
 
     #[test]
     fn file_roundtrip_via_state_file_path() {
-        let dir = std::env::temp_dir().join(format!(
-            "healing-pet-state-test-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("healing-pet-state-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("create temp dir");
         let path = state_file_path(&dir);
 
